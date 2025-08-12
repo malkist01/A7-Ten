@@ -5,11 +5,6 @@
 #include <linux/init.h>
 #include <linux/init_task.h>
 #include <linux/kernel.h>
-
-#ifdef CONFIG_KSU_LSM_SECURITY_HOOKS
-#include <linux/lsm_hooks.h>
-#endif
-
 #include <linux/nsproxy.h>
 #include <linux/path.h>
 #include <linux/printk.h>
@@ -34,12 +29,6 @@
 #include "throne_tracker.h"
 #include "throne_tracker.h"
 #include "kernel_compat.h"
-
-#ifdef CONFIG_KSU_LSM_SECURITY_HOOKS
-#define LSM_HANDLER_TYPE static int
-#else
-#define LSM_HANDLER_TYPE int
-#endif
 
 static bool ksu_module_mounted = false;
 
