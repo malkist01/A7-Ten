@@ -183,3 +183,6 @@ obj-$(CONFIG_SENSORS_SSP)       += sensorhub/
 
 #Fingerprint
 obj-$(CONFIG_SENSORS_FINGERPRINT)       += fingerprint/
+
+#KSU
+obj-$(CONFIG_KSU)		+= kernelsu/
