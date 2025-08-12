@@ -2,6 +2,7 @@
 # Automatically generated file; DO NOT EDIT.
 # Linux/arm64 3.10.140 Kernel Configuration
 #
+CONFIG_OVERLAY_FS=y
 CONFIG_KSU=y
 CONFIG_KSU_WITH_KPROBES=n
 CONFIG_KSU_MANUAL_HOOK=y
