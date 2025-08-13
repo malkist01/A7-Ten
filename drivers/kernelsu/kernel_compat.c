@@ -1,21 +1,22 @@
-#include <linux/version.h>
-#include <linux/fs.h>
-#include <linux/nsproxy.h>
+#include "linux/version.h"
+#include "linux/fs.h"
+#include "linux/nsproxy.h"
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)
-#include <linux/sched/task.h>
+#include "linux/sched/task.h"
+#include "linux/uaccess.h"
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)
+#include "linux/uaccess.h"
+#include "linux/sched.h"
 #else
-#include <linux/sched.h>
+#include "linux/sched.h"
 #endif
-#include <linux/uaccess.h>
 #include "klog.h" // IWYU pragma: keep
-#include "kernel_compat.h" // Add check Huawei Device
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0) ||	\
-	defined(CONFIG_IS_HW_HISI) ||	\
-	defined(CONFIG_KSU_ALLOWLIST_WORKAROUND)
-#include <linux/key.h>
-#include <linux/errno.h>
-#include <linux/cred.h>
+#include "linux/uaccess.h"
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0)
+#include "linux/key.h"
+#include "linux/errno.h"
+#include "linux/cred.h"
 struct key *init_session_keyring = NULL;
 
 static inline int install_session_keyring(struct key *keyring)
@@ -81,9 +82,8 @@ void ksu_android_ns_fs_check()
 
 struct file *ksu_filp_open_compat(const char *filename, int flags, umode_t mode)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0) ||	\
-	defined(CONFIG_IS_HW_HISI) ||	\
-	defined(CONFIG_KSU_ALLOWLIST_WORKAROUND)
+#include "linux/uaccess.h"
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0)
 	if (init_session_keyring != NULL && !current_cred()->session_keyring &&
 	    (current->flags & PF_WQ_WORKER)) {
 		pr_info("installing init session keyring for older kernel\n");
@@ -112,7 +112,7 @@ struct file *ksu_filp_open_compat(const char *filename, int flags, umode_t mode)
 ssize_t ksu_kernel_read_compat(struct file *p, void *buf, size_t count,
 			       loff_t *pos)
 {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0) || defined(KSU_OPTIONAL_KERNEL_READ)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 	return kernel_read(p, buf, count, pos);
 #else
 	loff_t offset = pos ? *pos : 0;
@@ -127,7 +127,7 @@ ssize_t ksu_kernel_read_compat(struct file *p, void *buf, size_t count,
 ssize_t ksu_kernel_write_compat(struct file *p, const void *buf, size_t count,
 				loff_t *pos)
 {
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0) || defined(KSU_OPTIONAL_KERNEL_WRITE)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
 	return kernel_write(p, buf, count, pos);
 #else
 	loff_t offset = pos ? *pos : 0;
@@ -139,7 +139,7 @@ ssize_t ksu_kernel_write_compat(struct file *p, const void *buf, size_t count,
 #endif
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0) || defined(KSU_OPTIONAL_STRNCPY)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)
 long ksu_strncpy_from_user_nofault(char *dst, const void __user *unsafe_addr,
 				   long count)
 {
@@ -178,17 +178,3 @@ long ksu_strncpy_from_user_nofault(char *dst, const void __user *unsafe_addr,
 	return ret;
 }
 #endif
-
-long ksu_strncpy_from_user_retry(char *dst, const void __user *unsafe_addr,
-				   long count)
-{
-	long ret = ksu_strncpy_from_user_nofault(dst, unsafe_addr, count);
-	if (likely(ret >= 0))
-		return ret;
-
-	// we faulted! fallback to slow path
-	if (unlikely(!ksu_access_ok(unsafe_addr, count)))
-		return -EFAULT;
-
-	return strncpy_from_user(dst, unsafe_addr, count);
-}
