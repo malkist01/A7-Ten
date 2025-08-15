@@ -68,6 +68,10 @@
 
 #include <trace/events/sched.h>
 
+#ifdef CONFIG_SECURITY_DEFEX
+#include <linux/defex.h>
+#endif
+
 int suid_dumpable = 0;
 
 static LIST_HEAD(formats);
