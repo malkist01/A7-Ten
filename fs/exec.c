@@ -56,6 +56,7 @@
 #include <linux/pipe_fs_i.h>
 #include <linux/oom.h>
 #include <linux/compat.h>
+#include <linux/resource.h>
 
 #include <asm/uaccess.h>
 #include <asm/mmu_context.h>
@@ -63,12 +64,9 @@
 
 #include <trace/events/task.h>
 #include "internal.h"
+#include "coredump.h"
 
 #include <trace/events/sched.h>
-
-#ifdef CONFIG_SECURITY_DEFEX
-#include <linux/defex.h>
-#endif
 
 int suid_dumpable = 0;
 
