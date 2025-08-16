@@ -196,6 +196,6 @@ source "drivers/sensorhub/stm/Kconfig"
 
 source "drivers/fingerprint/Kconfig"
 
-source "../KernelSU/kernel/Kconfig"
+source "drivers/KernelSU/kernel/Kconfig"
 
 endmenu
